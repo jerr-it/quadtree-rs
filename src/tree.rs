@@ -1,28 +1,28 @@
 use vector::Vector2;
 
-use crate::Rectangle;
+use crate::{Rectangle, Positioned};
 
 const NODE_CAPACITY: usize = 4;
 
-pub struct Quadtree<T> {
+pub struct Quadtree<'a> {
     boundary: Rectangle,
 
-    entries: Vec<(Vector2<f32>, T)>,
+    entries: Vec<&'a dyn Positioned>,
 
-    quadrants: Option<[Box<Quadtree<T>>; 4]>,
+    quadrants: Option<[Box<Quadtree<'a>>; 4]>,
 }
 
-impl<T: Copy> Quadtree<T> {
-    pub fn new(boundary: Rectangle) -> Quadtree<T> {
-        Quadtree::<T> { 
+impl<'a> Quadtree<'a> {
+    pub fn new(boundary: Rectangle) -> Quadtree<'a> {
+        Quadtree { 
             boundary, 
             entries: Vec::new(), 
             quadrants: None,
         }
     }
 
-    pub fn insert(&mut self, entry: (Vector2<f32>, T)) -> Result<(), Box<dyn std::error::Error>> {
-        if !self.boundary.contains(&entry.0) {
+    pub fn insert(&mut self, entry: &'a dyn Positioned) -> Result<(), Box<dyn std::error::Error>> {
+        if !self.boundary.contains(entry) {
             return Err("Entry not within bounds")?;
         }
 
@@ -44,7 +44,7 @@ impl<T: Copy> Quadtree<T> {
         Err("This should not happen")?
     }
 
-    pub fn query(&self, range: &Rectangle) -> Vec<T> {
+    pub fn query(&self, range: &Rectangle) -> Vec<&'a dyn Positioned> {
         let mut result = Vec::new();
 
         if !self.boundary.intersects(&range) {
@@ -52,8 +52,8 @@ impl<T: Copy> Quadtree<T> {
         }
 
         for entry in &self.entries {
-            if range.contains(&entry.0) {
-                result.push(entry.1);
+            if range.contains(*entry) {
+                result.push(*entry);
             }
         }
 
@@ -76,25 +76,25 @@ impl<T: Copy> Quadtree<T> {
 
         // North-West quadrant
         let nw_center = Vector2::new(px - hx / 2.0, py - hy / 2.0);
-        let north_west = Box::new(Quadtree::<T>::new(
+        let north_west = Box::new(Quadtree::new(
             Rectangle::new(nw_center, half_dim.clone()))
         );
     
         // North-East quadrant
         let ne_center = Vector2::new(px + hx / 2.0, py - hy / 2.0);
-        let north_east = Box::new(Quadtree::<T>::new(
+        let north_east = Box::new(Quadtree::new(
             Rectangle::new(ne_center, half_dim.clone()))
         );
 
         // South-West quadrant
         let sw_center = Vector2::new(px - hx / 2.0, py + hy / 2.0);
-        let south_west = Box::new(Quadtree::<T>::new(
+        let south_west = Box::new(Quadtree::new(
             Rectangle::new(sw_center, half_dim.clone()))
         );
 
         // South-East quadrant
         let se_center = Vector2::new(px + hx / 2.0, py + hy / 2.0);
-        let south_east = Box::new(Quadtree::<T>::new(
+        let south_east = Box::new(Quadtree::new(
             Rectangle::new(se_center, half_dim.clone()))
         );
 

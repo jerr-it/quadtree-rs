@@ -1,5 +1,7 @@
 use vector::Vector2;
 
+use crate::Positioned;
+
 pub struct Rectangle {
     pub center: Vector2<f32>,
     pub half_dim: Vector2<f32>,
@@ -10,7 +12,8 @@ impl Rectangle {
         Rectangle { center, half_dim }
     }
 
-    pub fn contains(&self, point: &Vector2<f32>) -> bool {
+    pub fn contains(&self, point: &dyn Positioned) -> bool {
+        let point = point.position();
         !(
             point.x < self.center.x - self.half_dim.x || 
             point.x > self.center.x + self.half_dim.x || 
