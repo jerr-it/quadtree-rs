@@ -101,3 +101,47 @@ impl<'a> Quadtree<'a> {
         self.quadrants = Some([north_west, north_east, south_west, south_east]);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use vector::Vector2;
+    use crate::Rectangle;
+    use crate::Positioned;
+
+    #[test]
+    fn test_insert() {
+        let mut tree = Quadtree::new(Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(100.0, 100.0)));
+        let entry = Vector2::new(50.0, 50.0);
+        assert!(tree.insert(&entry).is_ok());
+    }
+
+    #[test]
+    fn test_insert_out_of_bounds() {
+        let mut tree = Quadtree::new(Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(100.0, 100.0)));
+        let entry = Vector2::new(150.0, 150.0);
+        assert!(tree.insert(&entry).is_err());
+    }
+
+    #[test]
+    fn test_query() {
+        let mut tree = Quadtree::new(Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(100.0, 100.0)));
+        let entry = Vector2::new(50.0, 50.0);
+        tree.insert(&entry).unwrap();
+        let range = Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(100.0, 100.0));
+        let result = tree.query(&range);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].position(), entry.position());
+    }
+
+    #[test]
+    fn test_query_out_of_bounds() {
+        let mut tree = Quadtree::new(Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(100.0, 100.0)));
+        let entry = Vector2::new(150.0, 150.0);
+        if tree.insert(&entry).is_err() {}
+        let range = Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(
+            100.0, 100.0));
+        let result = tree.query(&range);
+        assert_eq!(result.len(), 0);
+    }
+}
