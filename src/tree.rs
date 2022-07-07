@@ -144,4 +144,52 @@ mod tests {
         let result = tree.query(&range);
         assert_eq!(result.len(), 0);
     }
+
+    #[test]
+    fn test_subdivide() {
+        let mut tree = Quadtree::new(Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(100.0, 100.0)));
+        tree.subdivide();
+        assert_eq!(tree.quadrants.as_ref().unwrap().len(), 4);
+    }
+
+    #[test]
+    fn test_subdivide_through_insert() {
+        let mut tree = Quadtree::new(Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(100.0, 100.0)));
+        let entry1 = Vector2::new(25.0, 25.0);
+        let entry2 = Vector2::new(75.0, 25.0);
+        let entry3 = Vector2::new(25.0, 75.0);
+        let entry4 = Vector2::new(75.0, 75.0);
+        let entry5 = Vector2::new(80.0, 80.0);
+        
+        tree.insert(&entry1).unwrap();
+        tree.insert(&entry2).unwrap();
+        tree.insert(&entry3).unwrap();
+        tree.insert(&entry4).unwrap();
+        tree.insert(&entry5).unwrap();
+
+        assert_eq!(tree.quadrants.as_ref().unwrap().len(), 4);
+        assert_eq!(tree.entries.len(), 4);
+
+        // Check if the entries are in the correct quadrants
+        let quadrants = tree.quadrants.as_ref().unwrap();
+
+        let north_west = quadrants[0].as_ref();
+        let north_east = quadrants[1].as_ref();
+        let south_west = quadrants[2].as_ref();
+        let south_east = quadrants[3].as_ref();
+
+        let north_west_entries = north_west.query(
+            &Rectangle::new(Vector2::new(25.0, 25.0), Vector2::new(25.0, 25.0)));
+        let north_east_entries = north_east.query(
+            &Rectangle::new(Vector2::new(75.0, 25.0), Vector2::new(25.0, 25.0)));
+        let south_west_entries = south_west.query(
+            &Rectangle::new(Vector2::new(25.0, 75.0), Vector2::new(25.0, 25.0)));
+        let south_east_entries = south_east.query(
+            &Rectangle::new(Vector2::new(75.0, 75.0), Vector2::new(25.0, 25.0)));
+
+        assert_eq!(north_west_entries.len(), 0);
+        assert_eq!(north_east_entries.len(), 0);
+        assert_eq!(south_west_entries.len(), 0);
+        assert_eq!(south_east_entries.len(), 1);
+    }
 }
