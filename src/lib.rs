@@ -6,11 +6,11 @@ pub use tree::Quadtree;
 use vector::Vector2;
 
 pub trait Positioned {
-    fn position(&self) -> Vector2<f32>;
+    fn position(&self) -> &Vector2<f32>;
 }
 
 impl Positioned for Vector2<f32> {
-    fn position(&self) -> Vector2<f32> {
-        *self
+    fn position(&self) -> &Vector2<f32> {
+        self
     }
 }
