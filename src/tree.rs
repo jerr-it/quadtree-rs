@@ -15,7 +15,7 @@ pub struct Quadtree<'a> {
 impl<'a> Quadtree<'a> {
     pub fn new(center_x: f32, center_y: f32, half_dim_x: f32, half_dim_y: f32) -> Quadtree<'a> {
         Quadtree { 
-            boundary: Rectangle::new(Vector2::new(center_x, center_y), Vector2::new(half_dim_x, half_dim_y)), 
+            boundary: Rectangle::new(center_x, center_y, half_dim_x, half_dim_y), 
             entries: Vec::new(), 
             quadrants: None,
         }
@@ -75,19 +75,19 @@ impl<'a> Quadtree<'a> {
         let (hx, hy) = (hx / 2.0, hy / 2.0);
 
         // North-West quadrant
-        let nw_center = Vector2::new(px - hx / 2.0, py - hy / 2.0);
+        let nw_center = Vector2::new(px - hx, py - hy);
         let north_west = Box::new(Quadtree::new(nw_center.x, nw_center.y, hx, hy));
 
         // North-East quadrant
-        let ne_center = Vector2::new(px + hx / 2.0, py - hy / 2.0);
+        let ne_center = Vector2::new(px + hx, py - hy);
         let north_east = Box::new(Quadtree::new(ne_center.x, ne_center.y, hx, hy));    
 
         // South-West quadrant
-        let sw_center = Vector2::new(px - hx / 2.0, py + hy / 2.0);
+        let sw_center = Vector2::new(px - hx, py + hy);
         let south_west = Box::new(Quadtree::new(sw_center.x, sw_center.y, hx, hy));
 
         // South-East quadrant
-        let se_center = Vector2::new(px + hx / 2.0, py + hy / 2.0);
+        let se_center = Vector2::new(px + hx, py + hy);
         let south_east = Box::new(Quadtree::new(se_center.x, se_center.y, hx, hy));
 
         self.quadrants = Some([north_west, north_east, south_west, south_east]);
@@ -120,7 +120,7 @@ mod tests {
         let mut tree = Quadtree::new(0.0, 0.0, 100.0, 100.0);
         let entry = Vector2::new(50.0, 50.0);
         tree.insert(&entry).unwrap();
-        let range = Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(100.0, 100.0));
+        let range = Rectangle::new(0.0, 0.0, 100.0, 100.0);
         let result = tree.query(&range);
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].position(), entry.position());
@@ -131,8 +131,7 @@ mod tests {
         let mut tree = Quadtree::new(0.0, 0.0, 100.0, 100.0);
         let entry = Vector2::new(150.0, 150.0);
         if tree.insert(&entry).is_err() {}
-        let range = Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(
-            100.0, 100.0));
+        let range = Rectangle::new(0.0, 0.0, 100.0, 100.0);
         let result = tree.query(&range);
         assert_eq!(result.len(), 0);
     }
@@ -171,13 +170,13 @@ mod tests {
         let south_east = quadrants[3].as_ref();
 
         let north_west_entries = north_west.query(
-            &Rectangle::new(Vector2::new(25.0, 25.0), Vector2::new(25.0, 25.0)));
+            &Rectangle::new(25.0, 25.0, 25.0, 25.0));
         let north_east_entries = north_east.query(
-            &Rectangle::new(Vector2::new(75.0, 25.0), Vector2::new(25.0, 25.0)));
+            &Rectangle::new(75.0, 25.0, 25.0, 25.0));
         let south_west_entries = south_west.query(
-            &Rectangle::new(Vector2::new(25.0, 75.0), Vector2::new(25.0, 25.0)));
+            &Rectangle::new(25.0, 75.0, 25.0, 25.0));
         let south_east_entries = south_east.query(
-            &Rectangle::new(Vector2::new(75.0, 75.0), Vector2::new(25.0, 25.0)));
+            &Rectangle::new(75.0, 75.0, 25.0, 25.0));
 
         assert_eq!(north_west_entries.len(), 0);
         assert_eq!(north_east_entries.len(), 0);

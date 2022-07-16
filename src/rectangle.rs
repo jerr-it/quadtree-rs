@@ -8,8 +8,11 @@ pub struct Rectangle {
 }
 
 impl Rectangle {
-    pub fn new(center: Vector2<f32>, half_dim: Vector2<f32>) -> Rectangle {
-        Rectangle { center, half_dim }
+    pub fn new(center_x: f32, center_y: f32, half_dim_x: f32, half_dim_y: f32) -> Rectangle {
+        Rectangle { 
+            center: Vector2::new(center_x,center_y), 
+            half_dim: Vector2::new(half_dim_x, half_dim_y)
+        }
     }
 
     pub fn contains(&self, point: &dyn Positioned) -> bool {
@@ -38,7 +41,7 @@ mod tests {
 
     #[test]
     fn test_rectangle_contains() {
-        let rect = Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(1.0, 1.0));
+        let rect = Rectangle::new(0.0, 0.0, 1.0, 1.0);
         let point = Vector2::new(0.5, 0.5);
 
         assert!(rect.contains(&point));
@@ -46,23 +49,23 @@ mod tests {
 
     #[test]
     fn test_rectangle_intersects() {
-        let rect = Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(1.0, 1.0));
-        let other = Rectangle::new(Vector2::new(0.5, 0.5), Vector2::new(1.0, 1.0));
+        let rect = Rectangle::new(0.0, 0.0, 1.0, 1.0);
+        let other = Rectangle::new(0.5, 0.5, 1.0, 1.0);
 
         assert!(rect.intersects(&other));
     }
 
     #[test]
     fn test_rectangle_does_not_intersect() {
-        let rect = Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(1.0, 1.0));
-        let other = Rectangle::new(Vector2::new(4.0, 4.0), Vector2::new(1.0, 1.0));
+        let rect = Rectangle::new(0.0, 0.0, 1.0, 1.0);
+        let other = Rectangle::new(4.0, 4.0, 1.0, 1.0);
 
         assert!(!rect.intersects(&other));
     }
 
     #[test]
     fn test_rectangle_does_not_contain() {
-        let rect = Rectangle::new(Vector2::new(0.0, 0.0), Vector2::new(1.0, 1.0));
+        let rect = Rectangle::new(0.0, 0.0, 1.0, 1.0);
         let point = Vector2::new(2.0, 2.0);
 
         assert!(!rect.contains(&point));
