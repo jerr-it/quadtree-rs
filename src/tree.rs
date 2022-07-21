@@ -4,16 +4,16 @@ use crate::{Rectangle, Positioned};
 
 const NODE_CAPACITY: usize = 4;
 
-pub struct Quadtree<'a> {
+pub struct Quadtree<'a, T> {
     boundary: Rectangle,
 
-    entries: Vec<&'a dyn Positioned>,
+    entries: Vec<&'a T>,
 
-    quadrants: Option<[Box<Quadtree<'a>>; 4]>,
+    quadrants: Option<[Box<Quadtree<'a, T>>; 4]>,
 }
 
-impl<'a> Quadtree<'a> {
-    pub fn new(center_x: f32, center_y: f32, half_dim_x: f32, half_dim_y: f32) -> Quadtree<'a> {
+impl<'a, T: Positioned + Sync> Quadtree<'a, T> {
+    pub fn new(center_x: f32, center_y: f32, half_dim_x: f32, half_dim_y: f32) -> Quadtree<'a, T> {
         Quadtree { 
             boundary: Rectangle::new(center_x, center_y, half_dim_x, half_dim_y), 
             entries: Vec::new(), 
@@ -21,7 +21,7 @@ impl<'a> Quadtree<'a> {
         }
     }
 
-    pub fn insert(&mut self, entry: &'a dyn Positioned) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn insert(&mut self, entry: &'a T) -> Result<(), Box<dyn std::error::Error>> {
         if !self.boundary.contains(entry) {
             return Err("Entry not within bounds")?;
         }
@@ -44,7 +44,7 @@ impl<'a> Quadtree<'a> {
         Err("This should not happen")?
     }
 
-    pub fn query(&self, range: &Rectangle) -> Vec<&'a dyn Positioned> {
+    pub fn query(&self, range: &Rectangle) -> Vec<&T> {
         let mut result = Vec::new();
 
         if !self.boundary.intersects(&range) {
@@ -134,13 +134,6 @@ mod tests {
         let range = Rectangle::new(0.0, 0.0, 100.0, 100.0);
         let result = tree.query(&range);
         assert_eq!(result.len(), 0);
-    }
-
-    #[test]
-    fn test_subdivide() {
-        let mut tree = Quadtree::new(0.0, 0.0, 100.0, 100.0);
-        tree.subdivide();
-        assert_eq!(tree.quadrants.as_ref().unwrap().len(), 4);
     }
 
     #[test]
